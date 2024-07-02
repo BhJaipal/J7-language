@@ -101,11 +101,20 @@ std::string extractNextIdentifier(std::string &line, char seperator) {
 	std::size_t nextIdentifierEnd = 0;
 	bool isString = false;
 	bool isComment = false;
+	char strQuote = ' ';
 	bool isMultilineComment = false;
 	char lastCharacter = ' ';
 	for (auto charInLine : line) {
 		if (isComment) {
+			if (charInLine == '/' && lastCharacter == '*') {
+				isMultilineComment = false;
+				isComment = false;
+				nextIdentifierEnd++;
+				lastCharacter = ' ';
+				continue;
+			}
 			nextIdentifierEnd++;
+			lastCharacter = charInLine;
 			if (charInLine == '\n') break;
 			continue;
 		}
@@ -114,16 +123,19 @@ std::string extractNextIdentifier(std::string &line, char seperator) {
 				nextIdentifier += charInLine;
 				nextIdentifierEnd++;
 			}
+			lastCharacter = charInLine;
 			break;
 		}
 		if (!isSkippable(charInLine) || isString) {
 			if (!isComment) {
-				if (charInLine == '\"' || charInLine == '\'') {
+				if (charInLine == strQuote) {
 					if (isString) {
 						nextIdentifierEnd++;
+						strQuote = ' ';
 						break;
 					}
 					isString = true;
+					strQuote = charInLine;
 				} else if (charInLine == '/' && lastCharacter == '/' &&
 						   !isString) {
 					isComment = true;
@@ -146,6 +158,28 @@ std::string extractNextIdentifier(std::string &line, char seperator) {
 				}
 			}
 			IdentifierType currIdType = determineIdentifierType(charInLine);
+			if (idType == IdentifierType::Unknown) idType = currIdType;
+			else {
+				if (idType == IdentifierType::Ints ||
+					idType == IdentifierType::Floats) {
+					if (nextIdentifier[0] == '-' && charInLine == '-') {
+						nextIdentifierEnd++;
+						nextIdentifier += charInLine;
+						break;
+					} else if (nextIdentifier.size() > 0 &&
+							   (charInLine == '-' ||
+								currIdType != IdentifierType::Floats ||
+								currIdType != IdentifierType::Ints))
+						break;
+				}
+				if ((idType == IdentifierType::Symbolic &&
+					 currIdType != IdentifierType::Symbolic) ||
+					(idType != IdentifierType::Symbolic &&
+						 currIdType == IdentifierType::Symbolic ||
+					 charInLine == '-'))
+					break;
+			}
+			nextIdentifier += charInLine;
 		} else if (nextIdentifier.size() > 0) break;
 		nextIdentifierEnd++;
 		lastCharacter = charInLine;
