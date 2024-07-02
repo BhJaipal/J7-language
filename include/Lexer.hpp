@@ -45,6 +45,8 @@ struct TokenIdentifier {
 void processEscChars(std::string &str);
 void unprocessEscChars(std::string &str);
 
+std::string extractNextIdentifier(std::string &line, char seperator);
+
 std::ostream &operator<<(std::ostream &os, const Token &token);
 std::ostream &operator<<(std::ostream &os, const std::vector<Token> &token);
 } // namespace J7

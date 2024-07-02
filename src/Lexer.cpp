@@ -71,6 +71,89 @@ void unprocessEscChars(std::string &str) {
 	}
 }
 
+std::string extractNextIdentifier(std::string &line, char seperator) {
+	const char skippableChars[] = {' ', '\t', '\n', '\0'};
+	const char nonChainableChars[] = {'[', '(', '{', '}', ']', ')'};
+	enum class IdentifierType { Alpha, Ints, Floats, Symbolic, Unknown };
+	auto isSkippable = [&skippableChars](char c) -> bool {
+		for (char skippable : skippableChars) {
+			if (c == skippable) return true;
+		}
+		return false;
+	};
+	auto isUnchainableChar = [&nonChainableChars](char c) -> bool {
+		for (char nonChainableChar : nonChainableChars) {
+			if (c == nonChainableChar) return true;
+		}
+		return false;
+	};
+	auto determineIdentifierType = [](char c) -> IdentifierType {
+		return (c == '_' || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+				   ? IdentifierType::Alpha
+				   : (c >= '0' && c <= '9'
+						  ? IdentifierType::Ints
+						  : ((c == '.' || c == '-') || (c >= '0' && c <= '9')
+								 ? IdentifierType::Floats
+								 : IdentifierType::Symbolic));
+	};
+	IdentifierType idType = IdentifierType::Unknown;
+	std::string nextIdentifier;
+	std::size_t nextIdentifierEnd = 0;
+	bool isString = false;
+	bool isComment = false;
+	bool isMultilineComment = false;
+	char lastCharacter = ' ';
+	for (auto charInLine : line) {
+		if (isComment) {
+			nextIdentifierEnd++;
+			if (charInLine == '\n') break;
+			continue;
+		}
+		if (isUnchainableChar(charInLine)) {
+			if (nextIdentifierEnd == 0) {
+				nextIdentifier += charInLine;
+				nextIdentifierEnd++;
+			}
+			break;
+		}
+		if (!isSkippable(charInLine) || isString) {
+			if (!isComment) {
+				if (charInLine == '\"' || charInLine == '\'') {
+					if (isString) {
+						nextIdentifierEnd++;
+						break;
+					}
+					isString = true;
+				} else if (charInLine == '/' && lastCharacter == '/' &&
+						   !isString) {
+					isComment = true;
+					isMultilineComment = false;
+					if (nextIdentifier.size() > 0) break;
+					else nextIdentifierEnd++;
+					continue;
+				}
+				if (isString) {
+					nextIdentifierEnd++;
+					nextIdentifier += charInLine;
+					continue;
+				}
+				if (charInLine == '*' || lastCharacter == '/' && !isString) {
+					isMultilineComment = true;
+					isComment = true;
+					if (nextIdentifier.size() > 0) break;
+					else nextIdentifierEnd++;
+					continue;
+				}
+			}
+			IdentifierType currIdType = determineIdentifierType(charInLine);
+		} else if (nextIdentifier.size() > 0) break;
+		nextIdentifierEnd++;
+		lastCharacter = charInLine;
+	}
+	line = line.substr(nextIdentifierEnd);
+	return nextIdentifier;
+}
+
 std::ostream &operator<<(std::ostream &os, const Token &token) {
 	std::string value =
 		token.type == TokenType::EOLine ? "EOLine;" : token.literal;
