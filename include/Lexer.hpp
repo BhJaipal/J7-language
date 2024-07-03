@@ -37,15 +37,8 @@ struct Token {
 	TokenType type;
 	std::string literal;
 };
-struct TokenIdentifier {
-	std::vector<std::string> identifiers;
-	static TokenIdentifier
-		tokenIdentifier[static_cast<int>(TokenType::Invalid)];
-};
-void processEscChars(std::string &str);
-void unprocessEscChars(std::string &str);
 
-std::string extractNextIdentifier(std::string &line, char seperator);
+std::vector<Token> &tokenize(const std::string &source);
 
 std::ostream &operator<<(std::ostream &os, const Token &token);
 std::ostream &operator<<(std::ostream &os, const std::vector<Token> &token);
