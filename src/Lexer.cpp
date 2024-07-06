@@ -1,5 +1,6 @@
 #include "Lexer.hpp"
 #include "utils/Errors.hpp"
+#include "utils/Find.hpp"
 #include <map>
 #include <string>
 
@@ -9,8 +10,10 @@ std::vector<std::string> J7Keywords{"ret",	 "for",	   "if",  "elif",
 									"const", "while",  "from"};
 std::vector<std::string> operators = {
 	"=",  "+",	"-",  "*", "/", "%", ">", "<", ">=", "<=", "==", "!=",
-	"&&", "||", ":=", ":", ".", ",", ";", "(", ")",	 "[",  "]",
-};
+	"&&", "||", ":=", ":", ".", ",", ";", "(", ")",	 "[",  "]"};
+std::vector<char> symbols{';', '<', '>', ':', ',', '=', '+', '-', '*',
+						  '/', '%', '(', ')', '[', ']', '{', '}'};
+std::vector<char> singleSym{'[', '{', '(', ')', '}', ']'};
 std::vector<std::string> J7Types{"Int", "Float", "String"};
 std::vector<std::string> J7TypesWithTemplate{"Array", "Set", "Map"};
 std::map<std::string, TokenType> J7KeywordMap{
@@ -30,23 +33,25 @@ std::map<TokenType, std::string> J7TokenLabel{
 	{TokenType::Array, "array"},
 	{TokenType::Set, "set"},
 	{TokenType::Map, "map"},
-	{TokenType::Var, "var"},
-	{TokenType::Const, "const"},
-	{TokenType::Function, "fun"},
-	{TokenType::Return, "ret"},
-	{TokenType::If, "if"},
-	{TokenType::Elif, "elif"},
-	{TokenType::Else, "else"},
-	{TokenType::While, "while"},
-	{TokenType::For, "for"},
-	{TokenType::Import, "import"},
-	{TokenType::From, "from"},
+	{TokenType::Var, "keyword"},
+	{TokenType::Const, "keyword"},
+	{TokenType::Function, "keyword"},
+	{TokenType::Return, "keyword"},
+	{TokenType::BinaryOperator, "binary operator"},
+	{TokenType::UrinaryOperator, "urinary operator"},
+	{TokenType::If, "keyword"},
+	{TokenType::Elif, "keyword"},
+	{TokenType::Else, "keyword"},
+	{TokenType::While, "keyword"},
+	{TokenType::For, "keyword"},
+	{TokenType::Import, "keyword"},
+	{TokenType::From, "keyword"},
 	{TokenType::EOLine, "EOLine"},
 	{TokenType::Comment, "comment"},
 	{TokenType::Identifier, "Identifier"},
 };
 
-int isWhiteSpace(char c) {
+bool isWhiteSpace(char c) {
 	switch (c) {
 	case '\t': return true;
 	case '\n': return true;
@@ -64,9 +69,12 @@ std::vector<Token> tokenize(const std::string &source,
 	int lineNo = 1;
 	bool isComment = false, isString = false, isMultiline = false;
 	char quoteType = ' ';
-	std::string line = source.substr(0, source.find('\n'));
-	std::string remaining = source.substr(source.find('\n'));
-	while (remaining.size()) {
+	int nextLine = Find(source, '\n');
+	std::string line =
+		source.substr(0, nextLine != -1 ? nextLine : source.size());
+	std::string remaining = nextLine != -1 ? source.substr(nextLine) : "";
+	int onlyOnce = nextLine == -1;
+	while (onlyOnce || remaining.size()) {
 		for (int i = 0; i < line.size(); i++) {
 			if (isString) {
 				if (line[i] == quoteType && (i > 0 && line[i - 1] != '\\')) {
@@ -75,49 +83,58 @@ std::vector<Token> tokenize(const std::string &source,
 					tokens.push_back({TokenType::String, identifier});
 					identifier = "";
 					quoteType = ' ';
-					goto ToNext;
 				} else {
 					identifier += line[i];
-					goto ToNext;
 				}
+				continue;
 			} else if (isComment) {
 				if (!isMultiline) {
 					identifier += line[i];
-					goto ToNext;
 				} else if (line[i] != '/') {
 					identifier += line[i];
-					goto ToNext;
 				} else if (i > 0 && line[i - 1] == '*') {
 					identifier += line[i];
 					isMultiline = false;
 					isComment = false;
 					tokens.push_back({TokenType::Comment, identifier});
 					identifier = "";
-					goto ToNext;
 				}
+				continue;
 			}
 			if (line[i] == '"' || line[i] == '\'') {
 				identifier = line[i];
 				quoteType = line[i];
 				isString = true;
+				continue;
 			}
-			if (isWhiteSpace(line[i])) { goto MatchIdentifier; }
+			if (identifier == "") { identifier += line[i]; }
+			if (Find(symbols, line[i]) != -1) { goto MatchIdentifier; }
 		MatchIdentifier:
 			if (std::isalpha(identifier[0]) || identifier[0] == '_') {
-				for (int i = 1; i < identifier.size(); i++) {
-					if (!(std::isalnum(identifier[i]) ||
-						  identifier[i] == '_')) {
-						tokens.push_back({TokenType::Invalid, identifier});
-						errors.push_back(new J7::SyntaxError(
-							"Invalid identifier", lineNo, line));
-						identifier = "";
-						break;
+				if (isWhiteSpace(line[i]) || Find(symbols, line[i]) != -1) {
+					for (int i = 1; i < identifier.size(); i++) {
+						if (!(std::isalnum(identifier[i]) ||
+							  identifier[i] == '_')) {
+							tokens.push_back({TokenType::Invalid, identifier});
+							errors.push_back(new J7::SyntaxError(
+								"Invalid identifier", lineNo, line));
+							identifier = "";
+							break;
+						}
 					}
+					int i = J7KeywordMap.find(identifier) != J7KeywordMap.end();
+					if (i)
+						tokens.push_back(
+							{J7KeywordMap[identifier], identifier});
+					else tokens.push_back({TokenType::Identifier, identifier});
+					identifier = "";
+					if (Find(symbols, line[i]) != -1) { identifier += line[i]; }
+					continue;
 				}
-				if (J7KeywordMap.find(identifier) != J7KeywordMap.end())
-					tokens.push_back({J7KeywordMap[identifier], identifier});
-				else tokens.push_back({TokenType::Identifier, identifier});
-				identifier = "";
+				if (identifier.size() == 1 && identifier[0] == line[i])
+					continue;
+				identifier += line[i];
+				continue;
 			}
 			if (std::isdigit(identifier[0]) || identifier[0] == '.') {
 				int hasDot = 0;
@@ -140,6 +157,24 @@ std::vector<Token> tokenize(const std::string &source,
 				else tokens.push_back({TokenType::Int, identifier});
 				identifier = "";
 			}
+			if (Find(symbols, line[i]) != -1) {
+				if (Find(singleSym, line[i]) != -1) {
+					TokenType symType;
+					switch (line[i]) {
+					case '[': symType = TokenType::OpenSquare; break;
+					case ']': symType = TokenType::CloseSquare; break;
+					case '{': symType = TokenType::OpenCurly; break;
+					case '}': symType = TokenType::CloseCurly; break;
+					case '(': symType = TokenType::OpenParen; break;
+					case ')': symType = TokenType::CloseParen; break;
+					default: break;
+					}
+					tokens.push_back({symType, identifier});
+				} else {
+					identifier += line[i];
+				}
+			}
+			if (Find(symbols, line[i]) != -1) { identifier += line[i]; }
 		}
 	ToNext:
 		if (isComment && !isMultiline) {
@@ -147,8 +182,15 @@ std::vector<Token> tokenize(const std::string &source,
 			tokens.push_back({TokenType::Comment, identifier});
 			identifier = "";
 		}
-		line = remaining.substr(0, remaining.find('\n'));
-		remaining = remaining.substr(remaining.find('\n'));
+		if (onlyOnce) break;
+		int next = Find(remaining, '\n');
+		if (next == -1) {
+			line = remaining;
+			remaining = "";
+		} else {
+			line = remaining.substr(0, next);
+			remaining = remaining.substr(next);
+		}
 		lineNo++;
 	}
 RetTokens:
