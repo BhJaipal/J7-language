@@ -1,5 +1,6 @@
 #pragma once
-#include "modules/my_hashmap.hpp"
+#include "../modules/my_hashmap.hpp"
+#include "utils/Errors.hpp"
 #include <string>
 #include <vector>
 
@@ -9,9 +10,14 @@ enum class TokenType {
 	Float,
 	Bool,
 	String,
+	Array,
+	Set,
+	Map,
 	Var,
 	Const,
 	Function,
+	Import,
+	From,
 	Return,
 	If,
 	Else,
@@ -21,6 +27,7 @@ enum class TokenType {
 	Equals,
 	UrinaryOperator,
 	BinaryOperator,
+	TypeAssignmentOperator,
 	OpenParen,
 	CloseParen,
 	OpenSquare,
@@ -37,8 +44,8 @@ struct Token {
 	TokenType type;
 	std::string literal;
 };
-
-std::vector<Token> &tokenize(const std::string &source);
+std::vector<Token> tokenize(const std::string &source,
+							std::vector<Error *> &errors);
 
 std::ostream &operator<<(std::ostream &os, const Token &token);
 std::ostream &operator<<(std::ostream &os, const std::vector<Token> &token);

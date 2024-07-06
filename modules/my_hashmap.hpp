@@ -144,7 +144,7 @@ template <typename _Key = int, typename _Value = std::string> class Hashmap {
 		}
 		return out;
 	}
-	T *map(std::function<T(_Key, _Value)> callback) {
+	template <typename T> T *map(std::function<T(_Key, _Value)> callback) {
 		T out[len];
 		for (int i = 0; i < len; i++) {
 			out[i] = callback(arr[i].key, arr[i].value);
