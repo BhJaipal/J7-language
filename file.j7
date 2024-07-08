@@ -1,2 +1,2 @@
-var ok = 7;
+var ok := 7;
 var// ok

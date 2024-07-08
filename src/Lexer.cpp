@@ -13,7 +13,7 @@ std::vector<std::string> operators = {
 	"&&", "||", "=", ":", ".", ",", ";", "(", ")",	"[",  "]"};
 std::vector<char> symbols{';', '<', '>', ':', ',', '=', '+', '-', '*',
 						  '/', '%', '(', ')', '[', ']', '{', '}'};
-std::vector<char> singleSym{'[', '{', '(', ')', '}', ']', '=', ';'};
+std::vector<char> singleSym{'[', '{', '(', ')', '}', ']', '=', ';', ':'};
 std::vector<char> allSymbols{'~', '`', '<',	 '>', '\"', '\'', ':', ',',
 							 ';', '.', '\\', '/', '!',	'@',  '#', '$',
 							 '%', '^', '&',	 '*', '(',	')',  '-', '+',
@@ -36,6 +36,7 @@ std::map<TokenType, std::string> J7TokenLabel{
 	{TokenType::Bool, "bool"},
 	{TokenType::Array, "array"},
 	{TokenType::Set, "set"},
+	{TokenType::TypeAssignmentOperator, "Type assignment operator"},
 	{TokenType::Map, "map"},
 	{TokenType::Var, "keyword"},
 	{TokenType::Const, "keyword"},
@@ -168,6 +169,9 @@ std::vector<Token> tokenize(const std::string &source,
 					case ')': symType = TokenType::CloseParen; break;
 					case '=': symType = TokenType::Equals; break;
 					case ';': symType = TokenType::EOLine; break;
+					case ':':
+						symType = TokenType::TypeAssignmentOperator;
+						break;
 					default: break;
 					}
 					tokens.push_back({symType, identifier});
