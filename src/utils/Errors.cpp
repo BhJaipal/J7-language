@@ -7,6 +7,7 @@
  */
 
 #include "utils/Errors.hpp"
+#include <cstdlib>
 #include <iostream>
 
 namespace J7 {
@@ -45,9 +46,14 @@ TypeError::TypeError(std::string t1, std::string t2, unsigned int line_no,
 			line_content) {}
 
 std::ostream &operator<<(std::ostream &os, const Error *error) {
-	os << error->name_ << ": " << error->message_ << '\n';
+	std::system((std::string("echo '\033[1;31m") + error->name_ +
+				 std::string(": \033[0m'") + error->message_)
+					.c_str());
 	if (error->line_no_)
-		os << error->line_no_ << " |    " << error->line_content_;
+		os << error->line_no_ << " |    " << error->line_content_
+		   << ((error->line_content_[error->line_content_.size() - 1] == '\n')
+				   ? ' '
+				   : '\n');
 	return os;
 }
 

@@ -13,11 +13,11 @@ int main(int argc, char **argv) {
 		ss << input.rdbuf();
 		src = ss.str();
 	}
-	std::cout << src << std::endl;
 	std::vector<J7::Error *> err;
 	std::vector<J7::Token> tokens = {{J7::TokenType::Int, "7"},
 									 {J7::TokenType::Identifier, "ok"}};
 	tokens = J7::tokenize(src, err);
 	std::cout << tokens << std::endl;
+	for (int i = 0; i < err.size(); i++) { std::cout << err[i]; }
 	return 0;
 }
