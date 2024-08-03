@@ -1,2 +1,5 @@
 #!/usr/bin/env sh
-cmake --build build/ && ./build/j7.exe file.j7
+mkdir build
+cmake -S . -B build
+cd build
+make all

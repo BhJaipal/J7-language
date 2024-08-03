@@ -10,9 +10,10 @@ std::vector<std::string> J7Keywords{"ret",	 "for",	   "if",  "elif",
 									"const", "while",  "from"};
 std::vector<std::string> operators = {
 	"=",  "+",	"-", "*", "/", "%", ">", "<", ">=", "<=", "==", "!=",
-	"&&", "||", "=", ":", ".", ",", ";", "(", ")",	"[",  "]"};
+	"&&", "||", "=", ":", ".", ",", ";", "(", ")",	"[",  "]",	"?"};
 std::vector<char> symbols{';', '<', '>', ':', ',', '=', '+', '-', '*',
 						  '/', '%', '(', ')', '[', ']', '{', '}'};
+std::vector<std::string> doubleSym{"+=", "==", "-=", "*=", "/=", "\\=", "**="};
 std::vector<char> singleSym{'[', '{', '(', ')', '}', ']', '=', ';', ':'};
 std::vector<char> allSymbols{'~', '`', '<',	 '>', '\"', '\'', ':', ',',
 							 ';', '.', '\\', '/', '!',	'@',  '#', '$',
@@ -36,7 +37,8 @@ std::map<TokenType, std::string> J7TokenLabel{
 	{TokenType::Bool, "bool"},
 	{TokenType::Array, "array"},
 	{TokenType::Set, "set"},
-	{TokenType::TypeAssignmentOperator, "Type assignment operator"},
+	{TokenType::TypeAssignmentOperator, "type assignment op"},
+	{TokenType::AssignmentOperator, "assignment op"},
 	{TokenType::Map, "map"},
 	{TokenType::Var, "keyword"},
 	{TokenType::Const, "keyword"},
@@ -91,6 +93,8 @@ std::vector<Token> tokenize(const std::string &source,
 					quoteType = ' ';
 				} else {
 					identifier += line[i];
+					printf("%c", line[i]);
+					if (i == line.size() - 1) identifier += '\n';
 				}
 				continue;
 			} else if (isComment) {

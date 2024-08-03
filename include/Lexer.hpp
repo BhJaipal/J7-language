@@ -27,6 +27,7 @@ enum class TokenType {
 	Equals,
 	UrinaryOperator,
 	BinaryOperator,
+	AssignmentOperator,
 	TypeAssignmentOperator,
 	OpenParen,
 	CloseParen,

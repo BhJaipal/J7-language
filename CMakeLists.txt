@@ -4,6 +4,8 @@ message("Building ${CMAKE_PROJECT_NAME} in ${CMAKE_SYSTEM_NAME} system")
 set(COMPILER "g++")
 set(CMAKE_CXX_STANDARD 20)
 set(Sources "src/utils/Errors.cpp" "src/utils/Find.cpp" "src/Lexer.cpp")
+set(CMAKE_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build")
+set(EXECUTABLE_OUTPUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 include_directories(include)
 
 add_executable(j7.exe main.cpp ${Sources})
