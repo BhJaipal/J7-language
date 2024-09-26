@@ -1,5 +1,5 @@
 #pragma once
-#include "../modules/my_hashmap.hpp"
+#include "modules/my_hashmap.hpp"
 #include "utils/Errors.hpp"
 #include <string>
 #include <vector>

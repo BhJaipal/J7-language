@@ -64,6 +64,5 @@
 		"cinttypes": "cpp"
 	},
 	"cmake.sourceDirectory": "/home/jaipal001/Desktop/files/c-use/Programming/bf-compiler",
-	"cmake.configureOnOpen": true,
-	"cmake.cmakePath": "/snap/cmake/current/bin/cmake"
+	"cmake.configureOnOpen": true
 }
