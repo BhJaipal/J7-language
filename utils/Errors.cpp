@@ -6,7 +6,7 @@
  *cause headache
  */
 
-#include "utils/Errors.hpp"
+#include "Errors.hpp"
 #include <cstdlib>
 #include <iostream>
 

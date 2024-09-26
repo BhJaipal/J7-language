@@ -1,5 +1,5 @@
 cc_library(
-	name = "modules"
-	hdrs = ["my_hashmap.hpp"]
-	visibility = ["//include:__pkg__"]
+	name = "mod",
+	srcs = ["my_hashmap.hpp"],
+	visibility = ["//lexer:__pkg__"]
 )

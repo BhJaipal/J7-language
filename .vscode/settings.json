@@ -62,7 +62,5 @@
 		"semaphore": "cpp",
 		"thread": "cpp",
 		"cinttypes": "cpp"
-	},
-	"cmake.sourceDirectory": "/home/jaipal001/Desktop/files/c-use/Programming/bf-compiler",
-	"cmake.configureOnOpen": true
+	}
 }

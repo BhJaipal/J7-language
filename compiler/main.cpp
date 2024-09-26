@@ -1,4 +1,4 @@
-#include "Lexer.hpp"
+#include "lexer/lexer.hpp"
 #include "utils/Errors.hpp"
 #include "utils/Find.hpp"
 #include <fstream>
@@ -13,11 +13,9 @@ int main(int argc, char **argv) {
 		ss << input.rdbuf();
 		src = ss.str();
 	}
-	std::vector<J7::Error *> err;
-	std::vector<J7::Token> tokens = {{J7::TokenType::Int, "7"},
+	std::vector<J7::Token> tokens = {{J7::TokenType::Int8, "7"},
 									 {J7::TokenType::Identifier, "ok"}};
-	tokens = J7::tokenize(src, err);
-	std::cout << tokens << std::endl;
-	for (int i = 0; i < err.size(); i++) { std::cout << err[i]; }
+
+	std::cout << tokens;
 	return 0;
 }
