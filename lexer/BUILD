@@ -3,5 +3,5 @@ cc_library(
 	srcs= ["lexer.cpp"],
 	hdrs= ["lexer.hpp"],
 	visibility = ["//compiler:__pkg__"],
-	deps = ["//modules:mod"]
+	deps = ["//modules:mod", "//utils:utils"]
 )

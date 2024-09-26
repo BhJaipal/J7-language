@@ -15,14 +15,15 @@ enum class TokenType {
 	UInt64,
 	Float32,
 	Float64,
+	LongFloat64,
 	Bool,
 	String,
 	Array,
 	Set,
 	Tuple,
 	Map,
-	Var,
-	Const,
+	VarValue,
+	ConstValue,
 	Function,
 	Return,
 	If,
@@ -30,11 +31,15 @@ enum class TokenType {
 	Elif,
 	While,
 	For,
+	In,
+	Break,
+	Continue,
 	Equals,
 	UrinaryOperator,
 	BinaryOperator,
 	AssignmentOperator,
 	TypeAssignmentOperator,
+	MemberAccess,
 	OpenParen,
 	CloseParen,
 	OpenSquare,
@@ -51,6 +56,8 @@ struct Token {
 	TokenType type;
 	std::string literal;
 };
+
+std::vector<Token> lex(std::string src);
 
 std::ostream &operator<<(std::ostream &os, const Token &token);
 std::ostream &operator<<(std::ostream &os, const std::vector<Token> &token);
