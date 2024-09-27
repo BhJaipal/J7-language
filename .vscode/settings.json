@@ -66,6 +66,7 @@
 		"semaphore": "cpp",
 		"thread": "cpp",
 		"cinttypes": "cpp",
-		"sstream": "cpp"
+		"sstream": "cpp",
+		"fstream": "cpp"
 	}
 }

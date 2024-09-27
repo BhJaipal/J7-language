@@ -4,22 +4,6 @@
 #include <string>
 
 namespace J7 {
-std::string keywords[] = {
-	"var",	"val",	 "fun", "ret", "if",	"elif",
-	"else", "while", "for", "in",  "break", "continue",
-};
-std::string types[] = {
-	"int8",	  "int16",	"int32",   "int64",	  "uint8",	   "uint16",
-	"uint32", "uint64", "float32", "float64", "longfloat", "bool",
-	"string", "array",	"tuple",   "set",	  "map",
-};
-
-std::vector<char> symbols{
-	'(', ')',  '{',	 '}', '[', ']', '.', ',',  ';',	 ':',  '+',
-	'-', '=',  '<',	 '>', '%', '&', '|', '^',  '~',	 '!',  '?',
-	'"', '\'', '\\', '#', '$', '@', ' ', '\t', '\n', '\r',
-};
-
 Token strNum_to_token(std::string identifier, int is_float) {
 	if (is_float) {
 		if (std::stold(identifier) > 1.7E-308 ||
@@ -100,7 +84,7 @@ Token strKeyIden_to_token(std::string identifier) {
 std::vector<Token> lex(std::string src) {
 	std::vector<Token> tokens;
 	std::string identifier;
-	int is_digit = 0, is_float = 0, alpha = 0, is_comment = 0;
+	int is_digit = 0, is_float = 0, alpha = 0, is_comment = 0, is_string = 0;
 	for (unsigned long int i = 0; i < src.size(); i++) {
 		char c = src[i];
 		if (is_comment) {
@@ -118,14 +102,18 @@ std::vector<Token> lex(std::string src) {
 		}
 
 		if (identifier == "") {
-			if (!isspace(c)) identifier += c;
+			if (!isspace(c)) { identifier += c; }
+			if (isdigit(c)) is_digit = 1;
+			if (isalpha(c)) alpha = 1;
+			if (c == '"' || c == '\'') is_string = 1;
 			continue;
 		}
-		if (identifier[0] == '\"' && identifier[0] == '\'') {
+		if (is_string) {
 			if (c == identifier[0] && src[i - 1] != '\\') {
-				identifier = identifier.substr(1);
+				identifier += c;
 				tokens.push_back({TokenType::String, identifier});
 				identifier = "";
+				is_string = 0;
 			} else if (isspace(c)) identifier += '\\' + c;
 			continue;
 		}
@@ -168,6 +156,25 @@ std::vector<Token> lex(std::string src) {
 				identifier = "";
 				alpha = 0;
 				continue;
+			} else if (Find(symbols, c) != -1) {
+				if (c == '.') tokens.push_back({TokenType::MemberAccess, "."});
+				if (c == '-')
+					tokens.push_back(
+						{TokenType::BinaryOperator, std::to_string(c)});
+				if (c == '+')
+					tokens.push_back(
+						{TokenType::BinaryOperator, std::to_string(c)});
+				if (c == '%')
+					tokens.push_back(
+						{TokenType::BinaryOperator, std::to_string(c)});
+				if (c == ':')
+					tokens.push_back(
+						{TokenType::TypeAssignmentOperator, std::to_string(c)});
+				if (c == '=')
+					tokens.push_back(
+						{TokenType::AssignmentOperator, std::to_string(c)});
+				identifier = "";
+				continue;
 			}
 		}
 		if (i > 1 && src[i - 1] == '/' && c == '*') {
@@ -199,25 +206,69 @@ std::vector<Token> lex(std::string src) {
 				is_digit = 0;
 				is_float = 0;
 			}
-			if (c == '.') tokens.push_back({TokenType::MemberAccess, "."});
-			if (c == '-')
-				tokens.push_back(
-					{TokenType::BinaryOperator, std::to_string(c)});
-			if (c == '+')
-				tokens.push_back(
-					{TokenType::BinaryOperator, std::to_string(c)});
-			if (c == '%')
-				tokens.push_back(
-					{TokenType::BinaryOperator, std::to_string(c)});
-			if (c == ':')
-				tokens.push_back(
-					{TokenType::TypeAssignmentOperator, std::to_string(c)});
-			if (c == '=')
-				tokens.push_back(
-					{TokenType::AssignmentOperator, std::to_string(c)});
+			if (Find(symbols, identifier[0]) &&
+				Find(singleSymbol, identifier[0]) == -1) {
+				identifier += c;
+				continue;
+			} else {
+				if (identifier[0] == '\'')
+					tokens.push_back({TokenType::String, "\'"});
+				if (identifier[0] == '"')
+					tokens.push_back({TokenType::String, "\""});
+				if (identifier[0] == ';')
+					tokens.push_back({TokenType::EOLine, ";"});
+				if (identifier[0] == ':')
+					tokens.push_back({TokenType::TypeAssignmentOperator, ":"});
+				if (identifier[0] == ',')
+					tokens.push_back({TokenType::NextIdentifier, ","});
+				if (identifier[0] == '.')
+					tokens.push_back({TokenType::MemberAccess, "."});
+				if (identifier[0] == '(')
+					tokens.push_back({TokenType::OpenParen, "("});
+				if (identifier[0] == ')')
+					tokens.push_back({TokenType::CloseParen, std::string(")")});
+				if (identifier[0] == '[')
+					tokens.push_back(
+						{TokenType::OpenSquare, std::to_string('[')});
+				if (identifier[0] == ']')
+					tokens.push_back(
+						{TokenType::CloseSquare, std::to_string(']')});
+				if (identifier[0] == '{')
+					tokens.push_back(
+						{TokenType::OpenCurly, std::to_string('{')});
+				if (identifier[0] == '}')
+					tokens.push_back(
+						{TokenType::CloseCurly, std::to_string('}')});
+				identifier = "";
+				continue;
+			}
+			if (Find(singleSymbol, c) != -1) {
+				if (c == '\'') tokens.push_back({TokenType::String, "\'"});
+				if (c == '"') tokens.push_back({TokenType::String, "\""});
+				if (c == ';') tokens.push_back({TokenType::EOLine, ";"});
+				if (c == ':')
+					tokens.push_back({TokenType::TypeAssignmentOperator, ":"});
+				if (c == ',')
+					tokens.push_back({TokenType::NextIdentifier, ","});
+				if (c == '.') tokens.push_back({TokenType::MemberAccess, "."});
+				if (c == '(') tokens.push_back({TokenType::OpenParen, "("});
+				if (c == ')')
+					tokens.push_back({TokenType::CloseParen, std::string(")")});
+				if (c == '[')
+					tokens.push_back(
+						{TokenType::OpenSquare, std::to_string('[')});
+				if (c == ']')
+					tokens.push_back(
+						{TokenType::CloseSquare, std::to_string(']')});
+				if (c == '{')
+					tokens.push_back(
+						{TokenType::OpenCurly, std::to_string('{')});
+				if (c == '}')
+					tokens.push_back(
+						{TokenType::CloseCurly, std::to_string('}')});
+			}
 		}
 	}
-
 	return tokens;
 }
 
