@@ -179,7 +179,7 @@ std::vector<Token> lex(std::string src) {
 			is_digit = 0;
 			is_float = 0;
 			alpha = 0;
-			identifier = "/" + c;
+			identifier = std::string("/") + c;
 			continue;
 		}
 		if (i > 1 && src[i - 1] == '/' && c != '*') {
@@ -222,7 +222,7 @@ std::vector<Token> lex(std::string src) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
-	os << (std::uint8_t)token.type << " " << token.literal;
+	os << (int)token.type << " " << token.literal;
 	return os;
 }
 std::ostream &operator<<(std::ostream &os, const std::vector<Token> &tokens) {

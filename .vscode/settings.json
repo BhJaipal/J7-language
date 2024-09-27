@@ -3,6 +3,10 @@
 		"*.embeddedhtml": "html",
 		"*.vue": "vue",
 		"*.td": "cpp",
+		"*.ui": "xml",
+		"*.3": "manpage",
+		"*.sh": "shellscript",
+		"*.rbs": "ruby",
 		"*.h": "c",
 		"*.tcc": "cpp",
 		"string": "cpp",
@@ -61,6 +65,7 @@
 		"ratio": "cpp",
 		"semaphore": "cpp",
 		"thread": "cpp",
-		"cinttypes": "cpp"
+		"cinttypes": "cpp",
+		"sstream": "cpp"
 	}
 }
