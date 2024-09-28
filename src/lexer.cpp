@@ -134,6 +134,10 @@ std::vector<Token> lex(std::string src) {
 			}
 			continue;
 		}
+		if (isspace(identifier[0])) {
+			identifier = "";
+			continue;
+		}
 		if (isdigit(identifier[0]) && identifier.size() == 1) is_digit = 1;
 		if (is_digit && isdigit(c)) identifier += c;
 		if (isspace(c)) {

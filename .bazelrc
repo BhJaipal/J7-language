@@ -1,2 +1,0 @@
-CC=/bin/clang++-16
--lstdc++=/usr/lib/x86_64-linux-gnu/12/libstdc++.so
