@@ -277,7 +277,7 @@ std::vector<Token> lex(std::string src) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
-	os << (int)token.type << " " << token.literal;
+	os << keySwitch[token.type] << " " << token.literal;
 	return os;
 }
 std::ostream &operator<<(std::ostream &os, const std::vector<Token> &tokens) {
