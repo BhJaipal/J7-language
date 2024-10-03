@@ -1,6 +1,11 @@
 "J7 in Bazel with llvm"
 module(name = "j7")
 
+http_archive = use_repo_rule(
+    "@bazel_tools//tools/build_defs/repo:http.bzl",
+    "http_archive",
+)
+
 llvm_project_version = "29b92d07746fac26cd64c914bc9c5c3833974f6d"
 
 # Load a repository for the raw llvm-project, pre-overlay.
