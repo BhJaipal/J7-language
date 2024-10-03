@@ -3,3 +3,6 @@
 build/
 bin/
 CMakeFiles/
+__pycache__
+bazel-*
+!bazel-use
