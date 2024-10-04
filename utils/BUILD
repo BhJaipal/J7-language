@@ -16,3 +16,11 @@ cc_library(
 		"//main:__pkg__",
 	]
 )
+cc_library(
+	name = "Trim",
+	srcs = ["Trim.cpp"],
+	hdrs = ["Trim.hpp"],
+	visibility = [
+		"//lexer:__pkg__"
+	],
+)

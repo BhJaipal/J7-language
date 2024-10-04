@@ -45,7 +45,8 @@ int main(int argc, char **argv) {
 		ss << input.rdbuf();
 		src = ss.str();
 	}
-	std::vector<J7::Token> tokens = J7::lex(src);
+	J7::Lexer lexer(src);
+	std::vector<J7::Token> tokens = lexer.tokenize();
 
 	std::cout << tokens;
 	return 0;

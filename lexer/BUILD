@@ -7,6 +7,7 @@ cc_library(
 	],
 	deps = [
 		"//utils:Find",
+		"//utils:Trim",
 		"//modules:hashmap",
 	]
 )

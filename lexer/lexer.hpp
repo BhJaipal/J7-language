@@ -112,25 +112,44 @@ struct Token {
 	std::string literal;
 };
 
-static std::string keywords[] = {
-	"var",	"val",	 "fun", "ret", "if",	"elif",
-	"else", "while", "for", "in",  "break", "continue",
-};
+class Lexer {
+	std::vector<std::string> keywords;
+	std::vector<std::string> types;
+	std::vector<std::string> allSymbols;
+	std::vector<std::string> binarySym;
+	std::vector<std::string> unarySym;
+	std::vector<char> singleSymbol;
+	std::string src;
 
-static std::string types[] = {
-	"int8",	  "int16",	"int32",   "int64",	  "uint8",	   "uint16",
-	"uint32", "uint64", "float32", "float64", "longfloat", "bool",
-	"string", "array",	"tuple",   "set",	  "map",
+  public:
+	Lexer(std::string src) {
+		keywords = {
+			"var",	"val",	 "fun", "ret", "if",	"elif",
+			"else", "while", "for", "in",  "break", "continue",
+		};
+		types = {
+			"int8",	  "int16",	"int32",   "int64",	  "uint8",	   "uint16",
+			"uint32", "uint64", "float32", "float64", "longfloat", "bool",
+			"string", "array",	"tuple",   "set",	  "map",
+		};
+		allSymbols = {
+			"+", "-", "*",	"/",  "%",	"&",  "|",	"^", "&&", "&&=", "||", "<",
+			">", "=", "==", ">=", "<=", "<<", ">>", "(", ")",  "{",	  "}",	"[",
+			"]", ".", ",",	";",  ":",	";",  "\"", "'", "++", "--",  "!",	"~",
+		};
+		binarySym = {
+			"+",  "-", "*", "/", "%",  "&",	 "|",  "^",	 "&&", "&&=",
+			"||", "<", ">", "=", "==", ">=", "<=", "<<", ">>",
+		};
+		unarySym = {"++", "--", "!", "~"};
+		singleSymbol = {
+			'(', ')', '{', '}', '[', ']', '.', ',', ';', ':', ';', '"', '\'',
+		};
+		this->src = src;
+	}
+	std::vector<Token> tokenize();
+	Token strKeyIden_to_token(std::string identifier);
 };
-static std::vector<char> symbols{
-	'(', ')', '{', '}', '[', ']', '.', ',', ';',  ':',	'+',  '-',	'=',  '<',
-	'>', '%', '&', '|', '^', '~', '!', '?', '\"', '\'', '\\', '\t', '\n', '\r',
-};
-static std::vector<char> singleSymbol{
-	'(', ')', '{', '}', '[', ']', '.', ',', ';', ':', ';', '"', '\'',
-};
-
-std::vector<Token> lex(std::string src);
 
 std::ostream &operator<<(std::ostream &os, const Token &token);
 std::ostream &operator<<(std::ostream &os, const std::vector<Token> &token);

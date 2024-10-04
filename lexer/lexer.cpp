@@ -1,5 +1,6 @@
 #include "lexer.hpp"
 #include "utils/Find.hpp"
+#include "utils/Trim.hpp"
 #include <map>
 #include <string>
 
@@ -34,9 +35,9 @@ Token strNum_to_token(std::string identifier, int is_float) {
 	}
 }
 
-Token strKeyIden_to_token(std::string identifier) {
-	for (unsigned long int i = 0; i < keywords->size(); i++) {
-		if (identifier == i[keywords]) {
+Token Lexer::strKeyIden_to_token(std::string identifier) {
+	for (unsigned long int i = 0; i < keywords.size(); i++) {
+		if (identifier == keywords[i]) {
 			if (identifier == "var") return {TokenType::VarValue, identifier};
 			if (identifier == "val") return {TokenType::ConstValue, identifier};
 			if (identifier == "fun") return {TokenType::Function, identifier};
@@ -53,8 +54,8 @@ Token strKeyIden_to_token(std::string identifier) {
 			continue;
 		}
 	}
-	for (unsigned long int i = 0; i < types->size(); i++) {
-		if (identifier == i[types]) {
+	for (unsigned long int i = 0; i < types.size(); i++) {
+		if (identifier == types[i]) {
 			if (identifier == "int8") return {TokenType::Int8, identifier};
 			if (identifier == "int16") return {TokenType::Int16, identifier};
 			if (identifier == "int32") return {TokenType::Int32, identifier};
@@ -81,7 +82,7 @@ Token strKeyIden_to_token(std::string identifier) {
 	return {TokenType::Identifier, identifier};
 }
 
-std::vector<Token> lex(std::string src) {
+std::vector<Token> Lexer::tokenize() {
 	std::vector<Token> tokens;
 	std::string identifier;
 	int is_digit = 0, is_float = 0, alpha = 0, is_comment = 0, is_string = 0;
@@ -100,177 +101,97 @@ std::vector<Token> lex(std::string src) {
 				continue;
 			} else identifier += c;
 		}
-
+		if (isspace(identifier[0])) identifier = "";
 		if (identifier == "") {
 			if (!isspace(c)) { identifier += c; }
 			if (isdigit(c)) is_digit = 1;
 			if (isalpha(c)) alpha = 1;
-			if (c == '"' || c == '\'') is_string = 1;
+			if (is_string) {
+				if ((c == identifier[0]) && (src[i - 1] != '\\') &&
+					(identifier.size() > 1)) {
+					identifier += c;
+					tokens.push_back({TokenType::String, identifier});
+					identifier = "";
+					is_string = 0;
+				} else if (c == ' ') identifier += ' ';
+				else if (isspace(c)) identifier += '\\' + c;
+				else identifier += c;
+				continue;
+			} else {
+				if (identifier[0] == '"' || identifier[0] == '\'') {
+					std::cout << "Yes\n";
+					is_string = 1;
+					continue;
+				}
+			}
 			continue;
 		}
-		if (is_string) {
-			if (c == identifier[0] && src[i - 1] != '\\') {
-				identifier += c;
-				tokens.push_back({TokenType::String, identifier});
-				identifier = "";
-				is_string = 0;
-			} else if (isspace(c)) identifier += '\\' + c;
-			continue;
-		}
-		if (is_digit && c == '.') {
+		if (is_digit && c == '.' && !is_float) {
 			is_float = 1;
 			identifier += c;
 			continue;
 		}
-		if (identifier.size() == 1 && isalpha(identifier[0])) { alpha = 1; }
-		if (isalnum(c) || c == '_') {
-			if (alpha) identifier += c;
-			else if (is_digit) {
-				identifier += c;
-				tokens.push_back({TokenType::Invalid, identifier});
-				identifier = "";
-				is_digit = 0;
-				is_float = 0;
-			}
+		if (is_digit && c == '.' && is_float) {
+			tokens.push_back(strNum_to_token(identifier, is_float));
+			is_digit = 0;
+			is_float = 0;
+			identifier = "";
+			tokens.push_back({TokenType::MemberAccess, "."});
 			continue;
 		}
 		if (isspace(identifier[0])) {
 			identifier = "";
 			continue;
 		}
-		if (isdigit(identifier[0]) && identifier.size() == 1) is_digit = 1;
-		if (is_digit && isdigit(c)) identifier += c;
+		if (alpha && (isalpha(c) || isdigit(c) || c == '_')) {
+			identifier += c;
+			continue;
+		}
+		if (is_digit && (isdigit(c) || c == '_')) {
+			if (c != '_') identifier += c;
+			continue;
+		}
 		if (isspace(c)) {
-			if (is_digit) {
-				for (unsigned long int j = 0; j < identifier.size(); j++) {
-					if (isdigit(identifier[i])) { is_digit = 1; }
-					if (identifier[i] == '.' && !is_float) is_float = 1;
-				}
-				if (is_float && identifier[identifier.size() - 1] == '.') {
-					is_float = 0;
-					identifier = identifier.substr(0, identifier.size() - 1);
-				}
-				tokens.push_back(strNum_to_token(identifier, is_float));
-				identifier = "";
-				is_digit = 0;
-				is_float = 0;
-				continue;
-			} else if (alpha) {
+			if (alpha) {
 				tokens.push_back(strKeyIden_to_token(identifier));
-				identifier = "";
 				alpha = 0;
-				continue;
-			} else if (Find(symbols, c) != -1) {
-				if (c == '.') tokens.push_back({TokenType::MemberAccess, "."});
-				if (c == '-')
-					tokens.push_back(
-						{TokenType::BinaryOperator, std::to_string(c)});
-				if (c == '+')
-					tokens.push_back(
-						{TokenType::BinaryOperator, std::to_string(c)});
-				if (c == '%')
-					tokens.push_back(
-						{TokenType::BinaryOperator, std::to_string(c)});
-				if (c == ':')
-					tokens.push_back(
-						{TokenType::TypeAssignmentOperator, std::to_string(c)});
-				if (c == '=')
-					tokens.push_back(
-						{TokenType::AssignmentOperator, std::to_string(c)});
-				identifier = "";
-				continue;
-			}
-		}
-		if (i > 1 && src[i - 1] == '/' && c == '*') {
-			is_comment = 1;
-			if (is_digit)
+			} else if (is_digit) {
 				tokens.push_back(strNum_to_token(identifier, is_float));
-			else if (alpha) tokens.push_back(strKeyIden_to_token(identifier));
-			identifier = "";
-			is_digit = 0;
-			is_float = 0;
-			alpha = 0;
-			identifier = std::string("/") + c;
-			continue;
-		}
-		if (i > 1 && src[i - 1] == '/' && c != '*') {
-			identifier = c;
-			is_digit = 0;
-			is_float = 0;
-			alpha = 0;
-			tokens.push_back(
-				{TokenType::BinaryOperator, std::to_string(src[i - 1])});
-			continue;
-		}
-		int symPresent = Find(symbols, c);
-		if (symPresent != -1) {
-			if (is_digit) {
-				tokens.push_back(strNum_to_token(identifier, is_float));
-				identifier = "";
 				is_digit = 0;
 				is_float = 0;
-			}
-			if (Find(symbols, identifier[0]) &&
-				Find(singleSymbol, identifier[0]) == -1) {
-				identifier += c;
-				continue;
 			} else {
-				if (identifier[0] == '\'')
-					tokens.push_back({TokenType::String, "\'"});
-				if (identifier[0] == '"')
-					tokens.push_back({TokenType::String, "\""});
-				if (identifier[0] == ';')
-					tokens.push_back({TokenType::EOLine, ";"});
-				if (identifier[0] == ':')
-					tokens.push_back({TokenType::TypeAssignmentOperator, ":"});
-				if (identifier[0] == ',')
-					tokens.push_back({TokenType::NextIdentifier, ","});
-				if (identifier[0] == '.')
-					tokens.push_back({TokenType::MemberAccess, "."});
-				if (identifier[0] == '(')
-					tokens.push_back({TokenType::OpenParen, "("});
-				if (identifier[0] == ')')
-					tokens.push_back({TokenType::CloseParen, std::string(")")});
-				if (identifier[0] == '[')
-					tokens.push_back(
-						{TokenType::OpenSquare, std::to_string('[')});
-				if (identifier[0] == ']')
-					tokens.push_back(
-						{TokenType::CloseSquare, std::to_string(']')});
-				if (identifier[0] == '{')
-					tokens.push_back(
-						{TokenType::OpenCurly, std::to_string('{')});
-				if (identifier[0] == '}')
-					tokens.push_back(
-						{TokenType::CloseCurly, std::to_string('}')});
-				identifier = "";
-				continue;
+				identifier = trim(identifier);
+				if (Find(allSymbols, identifier) != 1) {
+					if (Find(singleSymbol, identifier[0]) != 0) {
+						if (identifier == "[")
+							tokens.push_back({TokenType::OpenSquare, "["});
+						else if (identifier == "]")
+							tokens.push_back({TokenType::CloseSquare, "["});
+						else if (identifier == "(")
+							tokens.push_back({TokenType::OpenParen, "("});
+						else if (identifier == ")")
+							tokens.push_back({TokenType::OpenParen, ")"});
+						else if (identifier == "{")
+							tokens.push_back({TokenType::OpenParen, "{"});
+						else if (identifier == "}")
+							tokens.push_back({TokenType::OpenParen, "}"});
+						else if (identifier == ",")
+							tokens.push_back({TokenType::NextIdentifier, ","});
+						else if (identifier == ",")
+							tokens.push_back({TokenType::NextIdentifier, ","});
+					} else if (Find(unarySym, identifier)) {
+						tokens.push_back(
+							{TokenType::UrinaryOperator, identifier});
+					} else if (Find(binarySym, identifier)) {
+						tokens.push_back(
+							{TokenType::BinaryOperator, identifier});
+					}
+				} else {
+					tokens.push_back({TokenType::Invalid, identifier});
+				}
 			}
-			if (Find(singleSymbol, c) != -1) {
-				if (c == '\'') tokens.push_back({TokenType::String, "\'"});
-				if (c == '"') tokens.push_back({TokenType::String, "\""});
-				if (c == ';') tokens.push_back({TokenType::EOLine, ";"});
-				if (c == ':')
-					tokens.push_back({TokenType::TypeAssignmentOperator, ":"});
-				if (c == ',')
-					tokens.push_back({TokenType::NextIdentifier, ","});
-				if (c == '.') tokens.push_back({TokenType::MemberAccess, "."});
-				if (c == '(') tokens.push_back({TokenType::OpenParen, "("});
-				if (c == ')')
-					tokens.push_back({TokenType::CloseParen, std::string(")")});
-				if (c == '[')
-					tokens.push_back(
-						{TokenType::OpenSquare, std::to_string('[')});
-				if (c == ']')
-					tokens.push_back(
-						{TokenType::CloseSquare, std::to_string(']')});
-				if (c == '{')
-					tokens.push_back(
-						{TokenType::OpenCurly, std::to_string('{')});
-				if (c == '}')
-					tokens.push_back(
-						{TokenType::CloseCurly, std::to_string('}')});
-			}
+			identifier = "";
+			continue;
 		}
 	}
 	return tokens;
