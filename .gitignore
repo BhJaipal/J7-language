@@ -2,7 +2,5 @@
 *.out
 build/
 bin/
-CMakeFiles/
-__pycache__
-bazel-*
-!bazel-use
+builddir
+.cache

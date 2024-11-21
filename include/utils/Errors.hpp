@@ -11,29 +11,29 @@
 namespace J7 {
 class Error {
   public:
-	std::string name_;
-	unsigned int line_no_;
 	std::string message_;
 	std::string line_content_;
+	std::size_t line_no_;
+	std::string name_;
 	Error(std::string message_);
 	Error(std::string name, std::string message);
-	Error(std::string name, std::string message, unsigned int, std::string);
+	Error(std::string name, std::string message, std::size_t, std::string);
 	friend std::ostream &operator<<(std::ostream &os, const Error *error);
 };
 class SyntaxError : public Error {
   public:
 	SyntaxError(std::string message);
-	SyntaxError(std::string message, unsigned int, std::string);
+	SyntaxError(std::string message, std::size_t, std::string);
 };
 class ZeroDivisionError : public Error {
   public:
 	ZeroDivisionError();
-	ZeroDivisionError(unsigned int line_no, std::string line_content);
+	ZeroDivisionError(std::size_t line_no, std::string line_content);
 };
 class TypeError : public Error {
   public:
 	TypeError(std::string t1, std::string t2);
-	TypeError(std::string t1, std::string t2, unsigned int line_no,
+	TypeError(std::string t1, std::string t2, std::size_t line_no,
 			  std::string line_content);
 };
 

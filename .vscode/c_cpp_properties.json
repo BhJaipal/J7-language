@@ -4,16 +4,16 @@
 			"name": "Linux",
 			"includePath": [
 				"${workspaceFolder}/**",
+				"modules",
 				"/usr/include",
 				"/usr/include/x86_64-linux-gnu",
+				"${default}",
 				"/usr/include/linux",
 				"/usr/include/c++/11",
 				"/usr/include/c++/11/tr1",
 				"/usr/include/c++/11/parallel",
 				"/usr/include/x86_64-linux-gnu/c++/11",
-				"/usr/include/x86_64-linux-gnu/bits",
-				"/usr/include/llvm-16",
-				"/usr/include/llvm-c-16"
+				"/usr/include/x86_64-linux-gnu/bits"
 			],
 			"defines": [],
 			"compilerPath": "/usr/bin/gcc",

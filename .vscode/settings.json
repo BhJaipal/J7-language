@@ -68,5 +68,7 @@
 		"cinttypes": "cpp",
 		"sstream": "cpp",
 		"fstream": "cpp"
-	}
+	},
+	"C_Cpp.default.compileCommands": "/home/jaipal001/Desktop/files/c-use/J7-language/builddir/compile_commands.json",
+	"C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild"
 }

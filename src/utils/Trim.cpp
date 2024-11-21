@@ -1,8 +1,8 @@
-#include "Trim.hpp"
+#include "utils/Trim.hpp"
 #include <string>
 
 std::string trim(std::string &str) {
-	int start = 0;
+	std::size_t start = 0;
 	int end = str.length() - 1;
 
 	// Find the first non-whitespace character from the start

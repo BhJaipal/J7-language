@@ -118,8 +118,8 @@ std::vector<Token> Lexer::tokenize() {
 				else identifier += c;
 				continue;
 			} else {
-				if (identifier[0] == '"' || identifier[0] == '\'') {
-					std::cout << "Yes\n";
+				if (c == '"' || c == '\'') {
+					identifier += c;
 					is_string = 1;
 					continue;
 				}
@@ -161,8 +161,8 @@ std::vector<Token> Lexer::tokenize() {
 				is_float = 0;
 			} else {
 				identifier = trim(identifier);
-				if (Find(allSymbols, identifier) != 1) {
-					if (Find(singleSymbol, identifier[0]) != 0) {
+				if (Find(allOperators, identifier) != 1) {
+					if (Find(singleSymbol, identifier[0]) != -1) {
 						if (identifier == "[")
 							tokens.push_back({TokenType::OpenSquare, "["});
 						else if (identifier == "]")
@@ -179,10 +179,10 @@ std::vector<Token> Lexer::tokenize() {
 							tokens.push_back({TokenType::NextIdentifier, ","});
 						else if (identifier == ",")
 							tokens.push_back({TokenType::NextIdentifier, ","});
-					} else if (Find(unarySym, identifier)) {
+					} else if (Find(unarySym, identifier) != -1) {
 						tokens.push_back(
 							{TokenType::UrinaryOperator, identifier});
-					} else if (Find(binarySym, identifier)) {
+					} else if (Find(binarySym, identifier) != -1) {
 						tokens.push_back(
 							{TokenType::BinaryOperator, identifier});
 					}

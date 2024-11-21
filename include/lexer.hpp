@@ -1,7 +1,7 @@
 #ifndef J7_LEXER
 #define J7_LEXER
 
-#include "modules/my_hashmap.hpp"
+#include "my_hashmap.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -115,7 +115,8 @@ struct Token {
 class Lexer {
 	std::vector<std::string> keywords;
 	std::vector<std::string> types;
-	std::vector<std::string> allSymbols;
+	std::vector<std::string> allOperators;
+	std::vector<char> allSymbols;
 	std::vector<std::string> binarySym;
 	std::vector<std::string> unarySym;
 	std::vector<char> singleSymbol;
@@ -132,10 +133,15 @@ class Lexer {
 			"uint32", "uint64", "float32", "float64", "longfloat", "bool",
 			"string", "array",	"tuple",   "set",	  "map",
 		};
-		allSymbols = {
+		allOperators = {
 			"+", "-", "*",	"/",  "%",	"&",  "|",	"^", "&&", "&&=", "||", "<",
 			">", "=", "==", ">=", "<=", "<<", ">>", "(", ")",  "{",	  "}",	"[",
 			"]", ".", ",",	";",  ":",	";",  "\"", "'", "++", "--",  "!",	"~",
+		};
+		allSymbols = {
+			'{', '}', '[', ']', ',',  ';', ':', '\"', ',', '.', '\'',
+			'<', '>', '/', '?', '\\', '=', '-', ')',  '(', '*', '&',
+			'^', '%', '$', '#', '@',  '!', '~', '`',  ')', '|',
 		};
 		binarySym = {
 			"+",  "-", "*", "/", "%",  "&",	 "|",  "^",	 "&&", "&&=",

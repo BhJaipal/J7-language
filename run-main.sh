@@ -1,9 +1,9 @@
 #!/usr/bin/env sh
-# if [ ! -d "build" ]; then
-# 	mkdir build
-# fi
-# cmake -S . -B build -G"Unix Makefiles"
-# cd build
-# make all
-scripts/run_bazelisk.py build //main:j7
-bazel-bin/main/j7 file.j7
+
+if [ $1 = "-S" ]; then
+	cd .. && meson setup --wipe build/
+elif [ $1 = "S" ]; then
+	meson setup --wipe build/
+elif [ $1 = "B" ]; then
+	ninja
+fi

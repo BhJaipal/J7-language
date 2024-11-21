@@ -1,4 +1,4 @@
-#include "lexer/lexer.hpp"
+#include "lexer.hpp"
 #include "utils/Errors.hpp"
 #include "utils/Find.hpp"
 #include <fstream>
