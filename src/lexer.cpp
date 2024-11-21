@@ -5,7 +5,7 @@
 #include <string>
 
 namespace J7 {
-Token strNum_to_token(std::string identifier, int is_float) {
+Token strNum_to_token(const std::string &identifier, const int is_float) {
 	if (is_float) {
 		if (std::stold(identifier) > 1.7E-308 ||
 			std::stold(identifier) < 1.7E-308)
@@ -35,7 +35,7 @@ Token strNum_to_token(std::string identifier, int is_float) {
 	}
 }
 
-Token Lexer::strKeyIden_to_token(std::string identifier) {
+Token Lexer::strKey_identifier_to_token(const std::string &identifier) const {
 	for (unsigned long int i = 0; i < keywords.size(); i++) {
 		if (identifier == keywords[i]) {
 			if (identifier == "var") return {TokenType::VarValue, identifier};
@@ -51,7 +51,6 @@ Token Lexer::strKeyIden_to_token(std::string identifier) {
 			if (identifier == "break") return {TokenType::Break, identifier};
 			if (identifier == "continue")
 				return {TokenType::Continue, identifier};
-			continue;
 		}
 	}
 	for (unsigned long int i = 0; i < types.size(); i++) {
@@ -68,7 +67,7 @@ Token Lexer::strKeyIden_to_token(std::string identifier) {
 				return {TokenType::Float32, identifier};
 			if (identifier == "float64")
 				return {TokenType::Float64, identifier};
-			if (identifier == "longfloat64")
+			if (identifier == "lfloat64")
 				return {TokenType::LongFloat64, identifier};
 			if (identifier == "bool") return {TokenType::Bool, identifier};
 			if (identifier == "string") return {TokenType::String, identifier};
@@ -76,124 +75,82 @@ Token Lexer::strKeyIden_to_token(std::string identifier) {
 			if (identifier == "tuple") return {TokenType::Tuple, identifier};
 			if (identifier == "map") return {TokenType::Map, identifier};
 			if (identifier == "set") return {TokenType::Set, identifier};
-			continue;
 		}
 	}
 	return {TokenType::Identifier, identifier};
 }
 
-std::vector<Token> Lexer::tokenize() {
+std::vector<Token> Lexer::tokenize() const {
 	std::vector<Token> tokens;
 	std::string identifier;
-	int is_digit = 0, is_float = 0, alpha = 0, is_comment = 0, is_string = 0;
-	for (unsigned long int i = 0; i < src.size(); i++) {
-		char c = src[i];
+	int is_digit = 0, is_float = 0, alpha = 0, is_comment = 0, is_string = 0, is_multiline = 0;
+	for (std::size_t i =0; i< src.size(); i++) {
+		char ch = src[i];
 		if (is_comment) {
-			if (src[i - 1] == '*' && c == '/') {
-				identifier = "*/";
+			if (src.size() -1 == i) {
+				identifier+= ch;
 				tokens.push_back({TokenType::Comment, identifier});
-				identifier = "";
+				return tokens;
+			}
+			if (is_multiline && ch == '*' && ch == '/') {
 				is_comment = 0;
-				continue;
-			} else if (src[i - 1] == '*' && c != '/') {
-				identifier += src[i - 1] + c;
-				tokens.push_back({TokenType::BinaryOperator, "*"});
-				continue;
-			} else identifier += c;
+				is_multiline = 0;
+				i++;
+			} else if (!is_multiline && ch == '\n') {
+				tokens.push_back({TokenType::Comment, identifier});
+				identifier.clear();
+			} else identifier += ch;
+			continue;
 		}
-		if (isspace(identifier[0])) identifier = "";
-		if (identifier == "") {
-			if (!isspace(c)) { identifier += c; }
-			if (isdigit(c)) is_digit = 1;
-			if (isalpha(c)) alpha = 1;
-			if (is_string) {
-				if ((c == identifier[0]) && (src[i - 1] != '\\') &&
-					(identifier.size() > 1)) {
-					identifier += c;
-					tokens.push_back({TokenType::String, identifier});
-					identifier = "";
-					is_string = 0;
-				} else if (c == ' ') identifier += ' ';
-				else if (isspace(c)) identifier += '\\' + c;
-				else identifier += c;
-				continue;
-			} else {
-				if (c == '"' || c == '\'') {
-					identifier += c;
-					is_string = 1;
-					continue;
-				}
+		if (ch == '(') { tokens.push_back({TokenType::OpenParen, "("}); continue; }
+		if (ch == ')') { tokens.push_back({TokenType::CloseParen, ")"}); continue; }
+		if (ch == '[') { tokens.push_back({TokenType::OpenSquare, "["}); continue; }
+		if (ch == ']') { tokens.push_back({TokenType::CloseSquare, "]"}); continue; }
+		if (ch == '{') { tokens.push_back({TokenType::OpenCurly, "{"}); continue; }
+		if (ch == '}') { tokens.push_back({TokenType::CloseCurly, "}"}); continue; }
+		if (ch == ',') { tokens.push_back({TokenType::Comma, ","}); continue; }
+		if (ch == '.') { tokens.push_back({TokenType::CloseParen, "."}); continue; }
+		if (ch == ';') { tokens.push_back({TokenType::EOLine, ";"}); continue; }
+		if (ch == '/' && src.size() -1 > i) {
+			if (src[i+1] == '*') {
+				is_comment = true;
+				i++;
+				is_multiline = true;
 			}
-			continue;
+			if (src[i+1] == '/') {
+				is_comment = true;
+				i++;
+				is_multiline = false;
+			}
 		}
-		if (is_digit && c == '.' && !is_float) {
-			is_float = 1;
-			identifier += c;
-			continue;
-		}
-		if (is_digit && c == '.' && is_float) {
-			tokens.push_back(strNum_to_token(identifier, is_float));
-			is_digit = 0;
-			is_float = 0;
-			identifier = "";
-			tokens.push_back({TokenType::MemberAccess, "."});
-			continue;
-		}
-		if (isspace(identifier[0])) {
-			identifier = "";
-			continue;
-		}
-		if (alpha && (isalpha(c) || isdigit(c) || c == '_')) {
-			identifier += c;
-			continue;
-		}
-		if (is_digit && (isdigit(c) || c == '_')) {
-			if (c != '_') identifier += c;
-			continue;
-		}
-		if (isspace(c)) {
-			if (alpha) {
-				tokens.push_back(strKeyIden_to_token(identifier));
-				alpha = 0;
-			} else if (is_digit) {
-				tokens.push_back(strNum_to_token(identifier, is_float));
-				is_digit = 0;
-				is_float = 0;
-			} else {
-				identifier = trim(identifier);
-				if (Find(allOperators, identifier) != 1) {
-					if (Find(singleSymbol, identifier[0]) != -1) {
-						if (identifier == "[")
-							tokens.push_back({TokenType::OpenSquare, "["});
-						else if (identifier == "]")
-							tokens.push_back({TokenType::CloseSquare, "["});
-						else if (identifier == "(")
-							tokens.push_back({TokenType::OpenParen, "("});
-						else if (identifier == ")")
-							tokens.push_back({TokenType::OpenParen, ")"});
-						else if (identifier == "{")
-							tokens.push_back({TokenType::OpenParen, "{"});
-						else if (identifier == "}")
-							tokens.push_back({TokenType::OpenParen, "}"});
-						else if (identifier == ",")
-							tokens.push_back({TokenType::NextIdentifier, ","});
-						else if (identifier == ",")
-							tokens.push_back({TokenType::NextIdentifier, ","});
-					} else if (Find(unarySym, identifier) != -1) {
-						tokens.push_back(
-							{TokenType::UrinaryOperator, identifier});
-					} else if (Find(binarySym, identifier) != -1) {
-						tokens.push_back(
-							{TokenType::BinaryOperator, identifier});
+		if (isdigit(ch)) {
+			while (i < src.size() && isdigit(ch) || ch == '_' || ch == 'e' || ch == 'E') i++; {
+				ch = src[i];
+				if (isdigit(ch) || ch == '.' || ch == '_' || (ch == 'e' || ch == 'E' && isdigit(*identifier.end()))) {
+					if (ch == '.' && identifier.empty()) {
+						identifier += std::string("0") + ch;
+						is_float = 1;
 					}
-				} else {
-					tokens.push_back({TokenType::Invalid, identifier});
+					if (ch == 'e' || ch == 'E') is_float = 1;
+					else identifier += ch;
 				}
 			}
-			identifier = "";
-			continue;
+			tokens.push_back({ is_float ? TokenType::Float64 : TokenType::Int64, identifier});
 		}
 	}
+	return tokens;
+}
+std::vector<std::string> Lexer::split(const std::string &source) {
+	std::vector<std::string> tokens;
+	std::string word;
+	for (const char ch: source) {
+		if (ch != ' ') word += ch;
+		else if (!word.empty()) {
+			tokens.push_back(word);
+			word.clear();
+		}
+	}
+	if (!word.empty()) tokens.push_back(word);
 	return tokens;
 }
 
@@ -202,7 +159,7 @@ std::ostream &operator<<(std::ostream &os, const Token &token) {
 	return os;
 }
 std::ostream &operator<<(std::ostream &os, const std::vector<Token> &tokens) {
-	for (auto i = tokens.begin(); i != tokens.end(); i++) {
+	for (auto i = tokens.begin(); i != tokens.end(); ++i) {
 		os << (J7::Token)*i << "\n";
 	}
 	return os;

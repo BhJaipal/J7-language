@@ -8,6 +8,7 @@
 
 namespace J7 {
 enum class TokenType {
+	// Types
 	Int32,
 	Int64,
 	Int16,
@@ -25,10 +26,13 @@ enum class TokenType {
 	Set,
 	Tuple,
 	Map,
+	// Variable
 	VarValue,
 	ConstValue,
+	// Keyword
 	Function,
 	Return,
+	// Control flow
 	If,
 	Else,
 	Elif,
@@ -37,12 +41,14 @@ enum class TokenType {
 	In,
 	Break,
 	Continue,
+	// Operators
 	Equals,
 	UrinaryOperator,
 	BinaryOperator,
 	AssignmentOperator,
 	TypeAssignmentOperator,
 	MemberAccess,
+	// Braces
 	OpenParen,
 	CloseParen,
 	OpenSquare,
@@ -50,7 +56,7 @@ enum class TokenType {
 	OpenCurly,
 	CloseCurly,
 	Identifier,
-	NextIdentifier,
+	Comma,
 	Comment,
 	EOLine,
 	EOFile,
@@ -100,7 +106,7 @@ static std::map<TokenType, std::string> keySwitch = {
 	{TokenType::OpenCurly, "OpenCurly"},
 	{TokenType::CloseCurly, "CloseCurly"},
 	{TokenType::Identifier, "Identifier"},
-	{TokenType::NextIdentifier, "NextIdentifier"},
+	{TokenType::Comma, "Comma"},
 	{TokenType::Comment, "Comment"},
 	{TokenType::EOLine, "EOLine"},
 	{TokenType::EOFile, "EOFile"},
@@ -123,14 +129,14 @@ class Lexer {
 	std::string src;
 
   public:
-	Lexer(std::string src) {
+	explicit Lexer(const std::string &src) {
 		keywords = {
 			"var",	"val",	 "fun", "ret", "if",	"elif",
 			"else", "while", "for", "in",  "break", "continue",
 		};
 		types = {
 			"int8",	  "int16",	"int32",   "int64",	  "uint8",	   "uint16",
-			"uint32", "uint64", "float32", "float64", "longfloat", "bool",
+			"uint32", "uint64", "float32", "float64", "lfloat64", "bool",
 			"string", "array",	"tuple",   "set",	  "map",
 		};
 		allOperators = {
@@ -153,8 +159,9 @@ class Lexer {
 		};
 		this->src = src;
 	}
-	std::vector<Token> tokenize();
-	Token strKeyIden_to_token(std::string identifier);
+	std::vector<Token> tokenize() const;
+	Token strKey_identifier_to_token(const std::string &identifier) const;
+	static std::vector<std::string> split(const std::string &s);
 };
 
 std::ostream &operator<<(std::ostream &os, const Token &token);

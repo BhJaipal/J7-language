@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 if [ $1 = "-S" ]; then
 	cd .. && meson setup --wipe build/
